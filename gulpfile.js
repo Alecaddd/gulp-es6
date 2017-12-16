@@ -28,7 +28,7 @@ var browserSync  = require( 'browser-sync' ).create();
 var reload       = browserSync.reload;
 
 // Project related variables
-var projectURL   = 'http://test.dev';
+var projectURL   = 'https://test.dev';
 
 var styleSRC     = './src/scss/style.scss';
 var styleAdminSRC = './src/scss/admin.scss';
@@ -57,6 +57,10 @@ var phpWatch     = './**/*.php';
 gulp.task( 'browser-sync', function() {
 	browserSync.init({
 		proxy: projectURL,
+		https: {
+			key: '/Users/your-user-name/path/to/your/key/test.dev.key',
+			cert: '/Users/your-user-name/path/to/your/cert/test.dev.crt'
+		},
 		injectChanges: true,
 		open: false
 	});
