@@ -86,7 +86,7 @@ gulp.task( 'js', function() {
 		return browserify({
 			entries: [jsSRC + entry]
 		})
-		.transform( babelify, { presets: [ 'es2015' ] } )
+		.transform( babelify, { presets: [ 'env' ] } )
 		.bundle()
 		.pipe( source( entry ) )
 		.pipe( rename( {
