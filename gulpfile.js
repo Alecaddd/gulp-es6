@@ -115,7 +115,7 @@ function triggerPlumber( src, url ) {
 	.pipe( gulp.dest( url ) );
 }
 
- gulp.task( 'default', ['styles', 'js', 'images', 'fonts'], function() {
+ gulp.task( 'default', ['styles', 'js', 'images', 'fonts', 'html'], function() {
 	gulp.src( jsURL + 'main.min.js' )
 		.pipe( notify({ message: 'Assets Compiled!' }) );
  });
