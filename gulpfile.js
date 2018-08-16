@@ -28,46 +28,41 @@ var browserSync  = require( 'browser-sync' ).create();
 var reload       = browserSync.reload;
 
 // Project related variables
-var projectURL   = 'https://test.dev';
-
 var styleSRC     = './src/scss/style.scss';
-var styleAdminSRC = './src/scss/admin.scss';
-var styleURL     = './assets/css/';
+var styleURL     = './dist/css/';
 var mapURL       = './';
 
-var jsSRC        = './src/scripts/';
+var jsSRC        = './src/js/';
 var jsFront      = 'main.js';
-var jsAdmin      = 'admin.js';
-var jsFiles      = [ jsFront, jsAdmin ];
-var jsURL        = './assets/js/';
+var jsFiles      = [ jsFront ];
+var jsURL        = './dist/js/';
 
 var imgSRC       = './src/images/**/*';
-var imgURL       = './assets/images/';
+var imgURL       = './dist/images/';
 
 var fontsSRC     = './src/fonts/**/*';
-var fontsURL     = './assets/fonts/';
+var fontsURL     = './dist/fonts/';
+
+var htmlSRC     = './src/**/*.html';
+var htmlURL     = './dist/';
 
 var styleWatch   = './src/scss/**/*.scss';
-var jsWatch      = './src/scripts/**/*.js';
+var jsWatch      = './src/js/**/*.js';
 var imgWatch     = './src/images/**/*.*';
 var fontsWatch   = './src/fonts/**/*.*';
-var phpWatch     = './**/*.php';
+var htmlWatch    = './src/**/*.html';
 
 // Tasks
 gulp.task( 'browser-sync', function() {
 	browserSync.init({
-		proxy: projectURL,
-		https: {
-			key: '/Users/your-user-name/path/to/your/key/test.dev.key',
-			cert: '/Users/your-user-name/path/to/your/cert/test.dev.crt'
-		},
-		injectChanges: true,
-		open: false
+		server: {
+			baseDir: './src/'
+		}
 	});
 });
 
 gulp.task( 'styles', function() {
-	gulp.src( [ styleSRC, styleAdminSRC ] )
+	gulp.src( [ styleSRC ] )
 		.pipe( sourcemaps.init() )
 		.pipe( sass({
 			errLogToConsole: true,
@@ -110,6 +105,10 @@ gulp.task( 'fonts', function() {
 	triggerPlumber( fontsSRC, fontsURL );
 });
 
+gulp.task( 'html', function() {
+	triggerPlumber( htmlSRC, htmlURL );
+});
+
 function triggerPlumber( src, url ) {
 	return gulp.src( src )
 	.pipe( plumber() )
@@ -117,16 +116,16 @@ function triggerPlumber( src, url ) {
 }
 
  gulp.task( 'default', ['styles', 'js', 'images', 'fonts'], function() {
-	gulp.src( jsURL + 'admin.min.js' )
+	gulp.src( jsURL + 'main.min.js' )
 		.pipe( notify({ message: 'Assets Compiled!' }) );
  });
 
  gulp.task( 'watch', ['default', 'browser-sync'], function() {
-	gulp.watch( phpWatch, reload );
 	gulp.watch( styleWatch, [ 'styles' ] );
 	gulp.watch( jsWatch, [ 'js', reload ] );
 	gulp.watch( imgWatch, [ 'images' ] );
 	gulp.watch( fontsWatch, [ 'fonts' ] );
-	gulp.src( jsURL + 'admin.min.js' )
+	gulp.watch( htmlWatch, [ 'html', reload ] );
+	gulp.src( jsURL + 'main.min.js' )
 		.pipe( notify({ message: 'Gulp is Watching, Happy Coding!' }) );
  });
