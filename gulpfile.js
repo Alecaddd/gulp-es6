@@ -1,13 +1,11 @@
 // Load Gulp...of course
-var gulp         = require( 'gulp' );
+const { src, dest, task, watch, series, parallel } = require('gulp');
 
 // CSS related plugins
 var sass         = require( 'gulp-sass' );
 var autoprefixer = require( 'gulp-autoprefixer' );
-var minifycss    = require( 'gulp-uglifycss' );
 
 // JS related plugins
-var concat       = require( 'gulp-concat' );
 var uglify       = require( 'gulp-uglify' );
 var babelify     = require( 'babelify' );
 var browserify   = require( 'browserify' );
@@ -53,16 +51,17 @@ var fontsWatch   = './src/fonts/**/*.*';
 var htmlWatch    = './src/**/*.html';
 
 // Tasks
-gulp.task( 'browser-sync', function() {
+function browser_sync(done) {
 	browserSync.init({
 		server: {
 			baseDir: './src/'
 		}
 	});
-});
+	done();
+}
 
-gulp.task( 'styles', function() {
-	gulp.src( [ styleSRC ] )
+function css(done) {
+	src( [ styleSRC ] )
 		.pipe( sourcemaps.init() )
 		.pipe( sass({
 			errLogToConsole: true,
@@ -72,16 +71,17 @@ gulp.task( 'styles', function() {
 		.pipe( autoprefixer({ browsers: [ 'last 2 versions', '> 5%', 'Firefox ESR' ] }) )
 		.pipe( rename( { suffix: '.min' } ) )
 		.pipe( sourcemaps.write( mapURL ) )
-		.pipe( gulp.dest( styleURL ) )
+		.pipe( dest( styleURL ) )
 		.pipe( browserSync.stream() );
-});
+	done();
+};
 
-gulp.task( 'js', function() {
+function js(done) {
 	jsFiles.map( function( entry ) {
 		return browserify({
 			entries: [jsSRC + entry]
 		})
-		.transform( babelify, { presets: [ 'env' ] } )
+		.transform( babelify, { presets: [ '@babel/preset-env' ] } )
 		.bundle()
 		.pipe( source( entry ) )
 		.pipe( rename( {
@@ -92,40 +92,41 @@ gulp.task( 'js', function() {
 		.pipe( sourcemaps.init({ loadMaps: true }) )
 		.pipe( uglify() )
 		.pipe( sourcemaps.write( '.' ) )
-		.pipe( gulp.dest( jsURL ) )
+		.pipe( dest( jsURL ) )
 		.pipe( browserSync.stream() );
 	});
- });
+	done();
+};
 
-gulp.task( 'images', function() {
-	triggerPlumber( imgSRC, imgURL );
-});
-
-gulp.task( 'fonts', function() {
-	triggerPlumber( fontsSRC, fontsURL );
-});
-
-gulp.task( 'html', function() {
-	triggerPlumber( htmlSRC, htmlURL );
-});
-
-function triggerPlumber( src, url ) {
-	return gulp.src( src )
-	.pipe( plumber() )
-	.pipe( gulp.dest( url ) );
+function triggerPlumber( src_file, dest_file ) {
+	return src( src_file )
+		.pipe( plumber() )
+		.pipe( dest( dest_file ) );
 }
 
- gulp.task( 'default', ['styles', 'js', 'images', 'fonts', 'html'], function() {
-	gulp.src( jsURL + 'main.min.js' )
-		.pipe( notify({ message: 'Assets Compiled!' }) );
- });
+function images() {
+	return triggerPlumber( imgSRC, imgURL );
+};
 
- gulp.task( 'watch', ['default', 'browser-sync'], function() {
-	gulp.watch( styleWatch, [ 'styles' ] );
-	gulp.watch( jsWatch, [ 'js', reload ] );
-	gulp.watch( imgWatch, [ 'images' ] );
-	gulp.watch( fontsWatch, [ 'fonts' ] );
-	gulp.watch( htmlWatch, [ 'html', reload ] );
-	gulp.src( jsURL + 'main.min.js' )
+function fonts() {
+	return triggerPlumber( fontsSRC, fontsURL );
+};
+
+function html() {
+	return triggerPlumber( htmlSRC, htmlURL );
+};
+
+function watch_files() {
+	watch(styleWatch, css);
+	watch(jsWatch, series(js, reload));
+	src(jsURL + 'main.min.js')
 		.pipe( notify({ message: 'Gulp is Watching, Happy Coding!' }) );
- });
+}
+
+task("css", css);
+task("js", js);
+task("images", images);
+task("fonts", fonts);
+task("html", html);
+task("default", parallel(css, js, images, fonts, html));
+task("watch", series(watch_files, browser_sync));
