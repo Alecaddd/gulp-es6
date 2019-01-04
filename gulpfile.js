@@ -23,7 +23,6 @@ var gulpif       = require( 'gulp-if' );
 
 // Browers related plugins
 var browserSync  = require( 'browser-sync' ).create();
-var reload       = browserSync.reload;
 
 // Project related variables
 var styleSRC     = './src/scss/style.scss';
@@ -51,12 +50,16 @@ var fontsWatch   = './src/fonts/**/*.*';
 var htmlWatch    = './src/**/*.html';
 
 // Tasks
-function browser_sync(done) {
+function browser_sync() {
 	browserSync.init({
 		server: {
-			baseDir: './src/'
+			baseDir: './dist/'
 		}
 	});
+}
+
+function reload(done) {
+	browserSync.reload();
 	done();
 }
 
@@ -117,8 +120,11 @@ function html() {
 };
 
 function watch_files() {
-	watch(styleWatch, css);
+	watch(styleWatch, series(css, reload));
 	watch(jsWatch, series(js, reload));
+	watch(imgWatch, series(images, reload));
+	watch(fontsWatch, series(fonts, reload));
+	watch(htmlWatch, series(html, reload));
 	src(jsURL + 'main.min.js')
 		.pipe( notify({ message: 'Gulp is Watching, Happy Coding!' }) );
 }
@@ -129,4 +135,4 @@ task("images", images);
 task("fonts", fonts);
 task("html", html);
 task("default", parallel(css, js, images, fonts, html));
-task("watch", series(watch_files, browser_sync));
+task("watch", parallel(browser_sync, watch_files));
